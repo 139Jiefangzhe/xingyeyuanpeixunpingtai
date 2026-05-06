@@ -1,0 +1,54 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/your/playedu-plus"],
+      "description": "读写项目文件，遍历目录，批量修改代码",
+      "alwaysAllow": ["read_file", "list_directory", "search_files"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git"],
+      "description": "本地Git操作：commit、diff、branch、log、checkout",
+      "alwaysAllow": ["git_status", "git_diff", "git_log", "git_branch"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "管理PR/Issue/代码审查/仓库文件读取",
+      "alwaysAllow": ["create_issue", "search_issues", "create_pull_request"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "复杂架构任务的逐步推理，防止AI跳步"
+    },
+    "mysql": {
+      "command": "uvx",
+      "args": ["mcp-server-mysql", "--host", "localhost", "--port", "3306", "--user", "root"],
+      "description": "查询数据库表结构、验证SQL、查看迁移状态",
+      "alwaysAllow": ["mysql_query", "mysql_execute", "mysql_schema"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"],
+      "description": "自动打开浏览器、点击、截图、验证前端页面",
+      "alwaysAllow": ["playwright_navigate", "playwright_screenshot", "playwright_click"]
+    },
+    "redis": {
+      "command": "python3",
+      "args": ["/path/to/custom-mcp/redis_mcp_server.py"],
+      "description": "查看缓存Key、验证序列化、排查热点(需自定义实现)",
+      "alwaysAllow": ["redis_get", "redis_keys", "redis_info"]
+    },
+    "docker": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "alpine/socat", "stdio-tcp:localhost:2375"],
+      "description": "构建镜像、查看容器日志(需暴露Docker API)",
+      "alwaysAllow": ["docker_ps", "docker_logs", "docker_build"]
+    }
+  }
+}

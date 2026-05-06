@@ -1,0 +1,20 @@
+CREATE TABLE `edu_train_task` (
+  `id` VARCHAR(64) NOT NULL COMMENT '雪花ID',
+  `project_id` VARCHAR(64) NOT NULL COMMENT '所属培训项目ID',
+  `name` VARCHAR(200) NOT NULL COMMENT '任务名称',
+  `type` TINYINT NOT NULL COMMENT '任务类型：1-课程 2-考试 3-直播 4-作业',
+  `ref_id` VARCHAR(64) NOT NULL COMMENT '关联资源ID',
+  `sort` INT NOT NULL DEFAULT 1 COMMENT '排序',
+  `is_required` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否必做：0-否 1-是',
+  `pass_rule` TINYINT NOT NULL COMMENT '完成标准：1-查看即完成 2-需通过考试 3-需提交作业',
+  `create_by` BIGINT NOT NULL DEFAULT 0 COMMENT '创建人',
+  `create_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `update_by` BIGINT NOT NULL DEFAULT 0 COMMENT '更新人',
+  `update_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-否 1-是',
+  PRIMARY KEY (`id`),
+  KEY `idx_train_task_project_id` (`project_id`),
+  KEY `idx_train_task_type` (`type`),
+  KEY `idx_train_task_ref_id` (`ref_id`),
+  KEY `idx_train_task_sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='培训任务表';

@@ -1,0 +1,276 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fff7f2 0%, #ffffff 180px);
+  padding: 16px 16px 96px;
+  box-sizing: border-box;
+}
+
+.headerCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.metaRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
+  margin-bottom: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.statusTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusPending {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.statusDoing {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.statusDone {
+  background: #ecfdf3;
+  color: #16a34a;
+}
+
+.primaryButton {
+  --background-color: #ff4d4f;
+  --border-color: #ff4d4f;
+}
+
+.questionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.questionMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optionItem {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 14px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.optionChecked {
+  border-color: #ff4d4f;
+  background: #fff1f2;
+}
+
+.optionMark {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.optionMarkSquare {
+  border-radius: 8px;
+}
+
+.optionChecked .optionMark {
+  border-color: #ff4d4f;
+  background: #ff4d4f;
+  color: #ffffff;
+}
+
+.optionBody {
+  flex: 1;
+}
+
+.optionLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.optionValue {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 140px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  box-sizing: border-box;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.fixedBottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #f3f4f6;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.numberGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.numberButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.numberCurrent {
+  border-color: #ff4d4f;
+  background: #fff1f2;
+  color: #ff4d4f;
+}
+
+.numberAnswered {
+  border-color: #16a34a;
+  background: #ecfdf3;
+  color: #16a34a;
+}
+
+.bottomActions {
+  display: flex;
+  gap: 10px;
+}
+
+.flexButton {
+  flex: 1;
+}
+
+.countdown {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.countdownDanger {
+  color: #dc2626;
+}
+
+.scoreBox {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.scoreCard {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.scoreLabel {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.scoreValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.answerLine {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.centerState {
+  min-height: 45vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

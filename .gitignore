@@ -1,0 +1,13 @@
+.DS_Store
+
+.codex/
+.playwright-cli/
+.playwright-mcp/
+output/
+
+**/node_modules/
+**/target/
+**/dist/
+
+h5-*.png
+admin-*.png

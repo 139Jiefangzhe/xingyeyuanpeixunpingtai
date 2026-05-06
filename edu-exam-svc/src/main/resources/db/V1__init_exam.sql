@@ -1,0 +1,23 @@
+CREATE TABLE `edu_exam_question` (
+  `id` VARCHAR(64) NOT NULL,
+  `bank_id` VARCHAR(64) NOT NULL COMMENT '所属题库',
+  `type` TINYINT NOT NULL COMMENT '题型：1-单选 2-多选 3-判断 4-填空 5-问答 6-组合',
+  `content` TEXT NOT NULL COMMENT '题干',
+  `options` JSON DEFAULT NULL COMMENT '选项（单选/多选用）',
+  `answer` TEXT NOT NULL COMMENT '正确答案',
+  `analysis` TEXT DEFAULT NULL COMMENT '解析',
+  `difficulty` TINYINT NOT NULL DEFAULT 3 COMMENT '难度：1-5',
+  `knowledge_point` VARCHAR(200) DEFAULT NULL COMMENT '知识点标签',
+  `score` INT NOT NULL DEFAULT 5 COMMENT '默认分值',
+  `create_by` BIGINT NOT NULL DEFAULT 0,
+  `create_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_by` BIGINT NOT NULL DEFAULT 0,
+  `update_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_question_bank_id` (`bank_id`),
+  KEY `idx_question_type` (`type`),
+  KEY `idx_question_difficulty` (`difficulty`),
+  KEY `idx_question_knowledge` (`knowledge_point`),
+  KEY `idx_question_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='题库题目表';

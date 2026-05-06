@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `edu_live_room` (
+  `id` varchar(64) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `course_id` int NOT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '1-未开始 2-直播中 3-已结束',
+  `push_url` varchar(512) DEFAULT NULL,
+  `play_url` varchar(512) DEFAULT NULL,
+  `record_url` varchar(512) DEFAULT NULL,
+  `creator_id` bigint NOT NULL,
+  `create_by` bigint DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_by` bigint DEFAULT NULL,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_live_room_course_id` (`course_id`),
+  KEY `idx_live_room_creator_id` (`creator_id`),
+  KEY `idx_live_room_status` (`status`),
+  KEY `idx_live_room_start_time` (`start_time`),
+  KEY `idx_live_room_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

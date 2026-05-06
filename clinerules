@@ -1,0 +1,287 @@
+# PlayEdu-Plus 企业培训平台开发规范
+# 基于 PlayEdu 二次开发的微服务全栈项目
+# 技术栈：Java 17 + Spring Boot 3 + Spring Cloud Alibaba + React 18 + Ant Design 5
+
+---
+
+## 一、项目架构总览
+
+本项目是基于 PlayEdu 开源版二次开发的企业私有化培训平台，采用微服务架构，共 10 个领域服务：
+
+- **user-svc** — 用户中心（部门/用户/角色/权限/SSO）
+- **course-svc** — 课程中心（课程/章节/资源/学习记录）
+- **exam-svc** — 考试中心（题库/组卷/考试/防作弊/阅卷）
+- **live-svc** — 直播中心（直播间/推流/弹幕/回放）
+- **train-svc** — 培训中心（培训项目/O2O/师徒制/实操作业/审批）
+- **community-svc** — 学习社区（论坛/问答/评论/圈子）
+- **point-svc** — 积分商城（规则引擎/账户/排行榜/兑换）
+- **talent-svc** — 人才发展（岗位模型/学习地图/岗位认证）
+- **stats-svc** — 统计分析（实时看板/离线报表/数据大屏）
+- **file-svc / msg-svc** — 文件服务与消息服务（上传/转码/通知推送）
+
+基础设施：Nacos（注册/配置）、Gateway（统一入口）、Sentinel（限流熔断）、SkyWalking（链路追踪）、RocketMQ（消息队列）、Redis Cluster（缓存）、MySQL 8（主库）、MinIO（对象存储）、Elasticsearch（搜索）、ClickHouse（分析）、XXL-Job（定时任务）。
+
+---
+
+## 二、服务开发铁律（绝对禁止）
+
+1. **禁止跨服务直接访问数据库**。服务间数据交互必须通过 REST API（OpenFeign）或 RocketMQ 消息。
+2. **禁止在 Controller 写业务逻辑**。Controller 只能做参数校验、DTO 转换、调用 Service。
+3. **禁止手写 JDBC 或原生 SQL**。统一使用 MyBatis-Plus；复杂查询用 XML，但必须经过 SQL 评审。
+4. **禁止循环调用外部服务**。批量场景必须提供批量查询 API，用 IN 语句一次取出。
+5. **禁止硬编码任何配置**。所有配置进 Nacos，本地仅用 `application-local.yml`。
+6. **禁止在内存中做大数据分页**。分页必须在 SQL 层完成，禁止查出全表再 subList。
+7. **禁止返回实体类给前端**。Controller 出参必须是 DTO，入参必须是 ReqDTO/QueryDTO。
+8. **禁止忽略异常**。所有异常必须被捕获并转换为统一错误码，禁止空 catch 块。
+9. **禁止在 Service 层做事务嵌套跨服务调用**。跨服务调用必须在事务外，或用最终一致性（MQ）。
+10. **禁止无索引 SQL 上线**。所有查询必须走索引，EXPLAIN 确认后再合并代码。
+
+---
+
+## 三、工程结构规范
+
+每个微服务必须遵循以下目录结构：
+
+```
+edu-{svc}/
+├── src/main/java/com/playedu/{svc}/
+│   ├── EduXxxApplication.java          # 启动类，@SpringBootApplication
+│   ├── config/                         # 配置类（仅本服务特有配置）
+│   ├── controller/                     # REST API 入口
+│   │   └── admin/                      # 管理端接口子包
+│   │   └── api/                        # 学员端/开放接口子包
+│   ├── service/                        # 业务逻辑层
+│   │   ├── impl/                       # 实现类
+│   │   └── dto/                        # 内部传输对象（不推荐放这里，放顶层 dto）
+│   ├── mapper/                         # MyBatis-Plus DAO 接口
+│   ├── domain/entity/                  # 数据库实体（DO），与表一一对应
+│   ├── domain/vo/                      # 视图对象（仅服务内组装）
+│   ├── dto/
+│   │   ├── req/                        # 请求 DTO（入参）
+│   │   ├── resp/                       # 响应 DTO（出参）
+│   │   └── query/                      # 查询 DTO（分页/筛选参数）
+│   ├── event/                          # 领域事件（MQ 消息体 + 监听器）
+│   ├── feign/                          # Feign 客户端（调用其他服务）
+│   │   └── fallback/                   # Feign 降级实现
+│   ├── interceptor/                    # 拦截器（如登录态解析）
+│   ├── util/                           # 工具类（仅本服务内使用）
+│   └── enums/                          # 枚举定义
+├── src/main/resources/
+│   ├── mapper/                         # MyBatis XML（复杂查询）
+│   ├── application.yml                 # 最小化配置，指向 Nacos
+│   └── bootstrap.yml                   # Nacos 配置中心地址
+├── src/test/                           # 单元测试 + 集成测试
+├── Dockerfile                          # 多阶段构建
+├── pom.xml                             # 依赖 edu-common-starter
+└── README.md                           # 服务接口说明 + 本地启动方式
+```
+
+---
+
+## 四、命名规范
+
+### 4.1 工程与类命名
+- 服务启动类：`EduXxxApplication.java`，如 `EduExamApplication.java`
+- 服务包名：`com.playedu.{svc}`，如 `com.playedu.exam`
+- Controller 类：`XxxController`，如 `ExamPaperController`
+- Service 接口：`XxxService`，实现：`XxxServiceImpl`
+- Mapper 接口：`XxxMapper`，继承 `BaseMapper<Entity>`
+- DTO 请求类：`XxxReqDTO`，响应类：`XxxRespDTO`，查询类：`XxxQueryDTO`
+- MQ 事件类：`XxxEvent`，如 `ExamCompletedEvent`
+- Feign 客户端：`XxxFeignClient`，如 `UserFeignClient`
+
+### 4.2 数据库命名
+- 表名：`edu_{svc}_{biz}`，如 `edu_exam_paper`、`edu_exam_question`
+- 字段：下划线命名，如 `create_time`、`update_by`、`is_deleted`
+- 索引名：`idx_{table}_{fields}`，如 `idx_exam_paper_creator_id`
+- 逻辑删除字段统一为 `is_deleted`（tinyint 0/1），MyBatis-Plus 全局配置
+
+### 4.3 接口与 URL 命名
+- 服务前缀：网关路由透传，`/{svc}/api/v1/{resource}`
+- 全小写，中划线分隔，如 `/exam-svc/api/v1/exam-papers/{id}`
+- 动词用 HTTP Method 表达，禁止在 URL 中出现动词（除了 `search`、`export` 等复合操作）
+
+---
+
+## 五、统一响应体与异常
+
+### 5.1 Result 包装体
+所有接口必须返回 `Result<T>`：
+
+```java
+public class Result<T> {
+    private Integer code;      // 0=成功，其他=业务错误码
+    private String msg;        // 提示信息
+    private T data;            // 数据
+    private String version;    // API 版本，如 "v1"
+    private Long timestamp;    // 服务端时间戳
+}
+```
+
+### 5.2 错误码规范
+- `0`：成功
+- `400xxx`：参数校验错误（如 `400001` 参数缺失）
+- `401xxx`：认证错误（`401001` Token 过期）
+- `403xxx`：权限不足（`403001` 无操作权限）
+- `404xxx`：资源不存在（`404001` 试卷不存在）
+- `429xxx`：限流（`429001` 请求过于频繁）
+- `500xxx`：系统内部错误（`500001` 数据库异常）
+- `600xxx`：业务逻辑错误（如 `600001` 考试已结束不可提交）
+
+每个服务独立维护 `ErrorCode.java` 枚举。
+
+### 5.3 异常处理层级
+- Controller：统一由 `@RestControllerAdvice` 捕获，转换为 Result
+- Service：抛出自定义 `BizException extends RuntimeException`（含错误码）
+- Mapper/DB：捕获 MyBatisException，包装为系统错误码
+
+---
+
+## 六、缓存与 Redis 规范
+
+### 6.1 Key 命名
+格式：`{svc}:{biz}:{id}[:sub]`
+
+示例：
+- `user:info:10001` — 用户基础信息
+- `course:detail:abc-123` — 课程详情
+- `exam:paper:questions:paper-456` — 试卷题目缓存（考试期间）
+- `point:rank:weekly:2024w03` — 周排行榜
+
+### 6.2 缓存策略
+- **Cache Aside**：先更新数据库，再删缓存；延迟双删用于一致性要求高的场景
+- **本地缓存 Caffeine**：权限菜单、部门树、配置项，TTL 5-10 分钟
+- **Redis 二级缓存**：用户信息、课程基础信息，TTL 30 分钟
+- **大对象禁止缓存**：视频文件、长文章正文直接走对象存储/CDN
+
+### 6.3 分布式锁
+使用 Redis Redisson：`RLock lock = redissonClient.getLock("lock:{biz}:{id}");`
+- 锁超时默认 30s，看门狗自动续期
+- 锁的范围必须最小化，禁止在锁内做远程调用
+
+---
+
+## 七、消息队列规范
+
+### 7.1 Topic 命名
+`{domain}.{action}`，全小写，点分隔：
+- `course.learning.completed` — 课程学习完成
+- `exam.result.submitted` — 考试结果提交
+- `live.room.started` — 直播开始
+- `point.account.changed` — 积分账户变动
+- `train.task.reminded` — 培训任务提醒
+
+### 7.2 消息体设计
+所有 MQ 消息必须包含：
+- `eventId`：UUID，幂等性校验
+- `eventType`：事件类型字符串
+- `timestamp`：毫秒时间戳
+- `source`：产生事件的服务名
+- `payload`：业务数据（扁平化，禁止嵌套实体对象）
+
+### 7.3 消费规范
+- 消费者必须做幂等校验（基于 `eventId` 去重表或 Redis SET）
+- 消费失败进死信队列，人工介入或定时重试
+- 禁止在消费者里直接调用第三方服务，如需调用用异步线程池隔离
+
+---
+
+## 八、服务间调用规范
+
+### 8.1 Feign 调用
+- 所有 Feign 接口集中放在 `feign/` 包下
+- 必须配置 Fallback 降级类，降级时返回空对象或抛 BizException
+- 请求头必须携带 `X-Trace-Id` 和 `X-User-Id`（通过 Feign 拦截器注入）
+- Feign 接口方法命名与远端 Controller 方法保持一致
+
+### 8.2 跨服务数据查询策略
+| 场景 | 推荐方案 | 不推荐 |
+|------|---------|--------|
+| 实时强依赖 | Feign 同步调用 + 缓存 | 直接查对方数据库 |
+| 最终一致 | MQ 异步事件 | 分布式事务（性能差） |
+| 列表页聚合 | BFF 层聚合查询 | 前端串调 N 个接口 |
+| 大数据同步 | Canal + 数据同步 | 定时全量拉取 |
+
+---
+
+## 九、安全与审计
+
+1. **接口鉴权**：所有业务接口必须经过 Gateway JWT 校验；内部 Feign 调用加入自定义内部 Token 防止外部直连
+2. **敏感数据脱敏**：手机号、邮箱、身份证号在日志和接口中脱敏；使用 Jackson 脱敏注解 `@Mask`
+3. **操作审计**：管理端所有写操作记录审计日志（操作人、时间、IP、操作内容、变更前后值），审计表只读
+4. **文件安全**：上传白名单校验（类型 + 大小）；视频 URL 使用预签名 Token（有效期 2h）
+5. **SQL 注入**：必须使用 `#{}` 或 MyBatis-Plus Wrapper，禁止 `${}` 拼接
+6. **XSS 防御**：前端富文本输入做 DOMPurify 过滤，后端再次校验
+
+---
+
+## 十、前端约束（React + Ant Design）
+
+1. **技术栈**：React 18 + TypeScript + Vite + Ant Design 5 + Zustand + React Query + Axios
+2. **组件命名**：大写驼峰，如 `ExamPaperList.tsx`；Hooks 用 `useXxx`，如 `useExamData`
+3. **API 层隔离**：`src/api/{svc}.ts`，禁止在组件里直接写 axios
+4. **路由**：React Router v6，懒加载 `React.lazy()`
+5. **状态管理**：服务端状态用 React Query（缓存/刷新/重试）；客户端全局状态用 Zustand
+6. **表单**：Ant Design Form + Zod 校验 schema，禁止手写校验逻辑
+7. **列表页**：统一封装 `useTable` Hook，内置分页、筛选、刷新、加载状态
+8. **枚举一致性**：前后端枚举值必须一致，前端从后端 `/api/enums` 动态拉取映射表
+9. **错误处理**：Axios 拦截器统一处理 401（跳转登录）、403（无权限提示）、500（错误页）、业务错误（message 提示）
+
+---
+
+## 十一、测试与质量
+
+1. **单元测试**：Service 层核心逻辑必须覆盖，使用 JUnit 5 + Mockito；Mapper 层用 `@MybatisPlusTest`
+2. **接口测试**：Controller 层用 MockMvc 测试，覆盖正常/异常/边界场景
+3. **集成测试**：关键链路（考试提交 → 成绩计算 → 积分发放 → 通知推送）编写端到端测试
+4. **代码扫描**：SonarQube 阈值：覆盖率 > 60%，漏洞 = 0，坏味道 < 50
+5. **性能基线**：核心接口 RT P99 < 500ms；压测阈值：登录 500 TPS，课程列表 1000 TPS，考试提交 200 TPS
+
+---
+
+## 十二、Docker 与 K8s 规范
+
+1. **基础镜像**：`eclipse-temurin:17-jre-alpine`
+2. **多阶段构建**：Stage1 Maven 打包 → Stage2 JRE 运行，最终镜像 < 200MB
+3. **JVM 参数**：`-Xmx512m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0`
+4. **健康检查**：
+   - Liveness：`/actuator/health/liveness`
+   - Readiness：`/actuator/health/readiness`
+5. **资源配置**：Request（CPU 500m, Mem 1Gi），Limit（CPU 2000m, Mem 2Gi）
+6. **配置外置**：应用配置走 Nacos，敏感信息走 K8s Secret（DB 密码、JWT Key、Redis 密码）
+7. **日志输出**：stdout 输出 JSON 格式日志，由 Filebeat/Fluentd 采集到 ELK
+
+---
+
+## 十三、Code Review Checklist
+
+AI 生成代码后，必须自检以下项目：
+
+- [ ] 是否遵循了分层规范（Controller/Service/Mapper/DTO 分离）
+- [ ] 是否有跨服务直接查库的风险
+- [ ] 是否正确使用了 Result 统一包装体
+- [ ] 缓存 Key 是否遵循 `{svc}:{biz}:{id}` 格式
+- [ ] SQL 是否走了索引（EXPLAIN 确认）
+- [ ] 是否有空指针风险（Optional / 判空）
+- [ ] 事务边界是否清晰（@Transactional 在 Service 层，不跨服务调用）
+- [ ] Feign 调用是否有 Fallback 降级
+- [ ] MQ 消费者是否做了幂等处理
+- [ ] 敏感字段是否脱敏
+- [ ] 接口是否有 Swagger @Operation 注解
+- [ ] 是否写了单元测试（核心逻辑）
+
+---
+
+## 十四、与 AI 协作的上下文提示
+
+当要求 AI 开发某个功能时，必须提供以下上下文（按优先级）：
+
+1. **所属服务**：明确是 `exam-svc`、`train-svc` 还是其他服务
+2. **表结构**：提供涉及的表名、字段、索引、已有实体类
+3. **接口契约**：该功能是暴露给前端（需要 DTO/Controller）还是仅内部使用（Feign/MQ）
+4. **调用关系**：是否需要调用其他服务，调用哪个服务的哪个接口
+5. **事件关系**：是否需要发送/消费 MQ 事件，事件格式是什么
+6. **前端页面**：如果是前端功能，说明是 `edu-pc` 还是 `edu-admin`，页面路由和主要交互
+
+示例提示：
+> "在 exam-svc 中实现智能组卷功能。表结构：edu_exam_question（题库，含 type/difficulty/knowledge_point 字段）、edu_exam_paper（试卷）、edu_exam_paper_question（关联表）。需要支持按题型数量、难度分布规则自动抽题，抽题时用 Redis 分布式锁防并发。组卷完成后发送 `exam.paper.generated` MQ 事件。提供 Service 层核心逻辑 + Mapper + 单元测试，不需要 Controller。"

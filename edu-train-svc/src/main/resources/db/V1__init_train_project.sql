@@ -1,0 +1,22 @@
+CREATE TABLE `edu_train_project` (
+  `id` VARCHAR(64) NOT NULL COMMENT '雪花ID',
+  `title` VARCHAR(200) NOT NULL COMMENT '培训项目标题',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT '培训项目描述',
+  `type` TINYINT NOT NULL COMMENT '培训类型：1-新员工培训 2-岗位晋升 3-O2O混合',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1-草稿 2-进行中 3-已完成',
+  `start_time` DATETIME(3) DEFAULT NULL COMMENT '培训开始时间',
+  `end_time` DATETIME(3) DEFAULT NULL COMMENT '培训结束时间',
+  `assignee_scope` TINYINT NOT NULL COMMENT '指派范围：1-全员 2-部门 3-指定人员',
+  `target_dept_ids` VARCHAR(1000) DEFAULT NULL COMMENT '目标部门ID列表，逗号分隔',
+  `create_by` BIGINT NOT NULL DEFAULT 0 COMMENT '创建人',
+  `create_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `update_by` BIGINT NOT NULL DEFAULT 0 COMMENT '更新人',
+  `update_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-否 1-是',
+  PRIMARY KEY (`id`),
+  KEY `idx_train_project_status` (`status`),
+  KEY `idx_train_project_type` (`type`),
+  KEY `idx_train_project_start_time` (`start_time`),
+  KEY `idx_train_project_end_time` (`end_time`),
+  KEY `idx_train_project_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='培训项目表';

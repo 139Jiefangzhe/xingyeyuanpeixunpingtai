@@ -1,0 +1,41 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: edu-user-svc
+  flyway:
+    enabled: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:dbname}?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    type: com.zaxxer.hikari.HikariDataSource
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:nacos.edu-infra.svc.cluster.local:8848}
+        namespace: ${NACOS_NAMESPACE:edu-prod}
+        group: DEFAULT_GROUP
+        metadata:
+          version: "1.0.0"
+          region: "beijing"
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:nacos.edu-infra.svc.cluster.local:8848}
+        namespace: ${NACOS_NAMESPACE:edu-prod}
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: shared-config.yml
+            group: DEFAULT_GROUP
+            refresh: true
+        extension-configs:
+          - data-id: edu-user-svc.yml
+            group: DEFAULT_GROUP
+            refresh: true
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  global-config:
+    banner: false

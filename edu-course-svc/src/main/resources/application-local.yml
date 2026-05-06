@@ -1,0 +1,30 @@
+server:
+  port: 8083
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
+  datasource:
+    url: jdbc:h2:mem:edu_course;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+  sql:
+    init:
+      schema-locations: classpath:schema-local.sql
+      data-locations: classpath:data-local.sql
+      mode: always
+  jpa:
+    defer-datasource-initialization: true
+
+edu:
+  redis:
+    enabled: false
+  redisson:
+    enabled: false

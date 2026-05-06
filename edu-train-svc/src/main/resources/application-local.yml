@@ -1,0 +1,56 @@
+server:
+  port: 8082
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
+  datasource:
+    url: jdbc:h2:mem:edu_train;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+  sql:
+    init:
+      schema-locations: classpath:schema-local.sql
+      data-locations: classpath:data-local.sql
+      mode: always
+  jpa:
+    defer-datasource-initialization: true
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            edu-exam-svc:
+              - uri: http://127.0.0.1:8081
+            edu-course-svc:
+              - uri: http://127.0.0.1:8083
+            edu-live-svc:
+              - uri: http://127.0.0.1:8084
+            edu-user-svc:
+              - uri: http://127.0.0.1:8085
+    openfeign:
+      client:
+        config:
+          edu-exam-svc:
+            url: http://127.0.0.1:8081
+          edu-course-svc:
+            url: http://127.0.0.1:8083
+          edu-live-svc:
+            url: http://127.0.0.1:8084
+          edu-user-svc:
+            url: http://127.0.0.1:8085
+
+edu:
+  redis:
+    enabled: false
+  redisson:
+    enabled: false
+  local:
+    user-bypass: true

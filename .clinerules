@@ -1,0 +1,238 @@
+代码审查红线与质量门禁
+
+    适用范围：AI 生成代码后的自检、人工 Code Review、CI 流水线质量门禁
+
+一、架构合规审查
+表格
+检查项	通过标准	严重等级
+跨服务直接访问数据库	未发现任何形式的跨服务 JDBC/Mapper 调用	🔴 Blocker
+服务名一致性	spring.application.name、包名、目录名、Gateway 路由完全一致	🔴 Blocker
+公共 Starter 引用	所有业务服务必须依赖 edu-common-starter	🔴 Blocker
+配置外置	无硬编码的数据库地址、密码、密钥；全部走 Nacos/K8s Secret	🔴 Blocker
+前后端字段一致性	DTO 字段名与前端 TypeScript 接口定义完全对应	🟠 Critical
+接口版本一致性	URL 版本与 @RequestMapping 前缀一致	🟠 Critical
+二、API 接口审查
+表格
+检查项	通过标准	严重等级
+统一响应包装	所有 Controller 方法返回 Result<T>，无裸返回实体	🔴 Blocker
+Swagger 注解	每个接口有 @Operation(summary=...)，@Tag 在类上	🟠 Critical
+参数校验	入参 DTO 有 @Valid + Jakarta Validation 注解	🟠 Critical
+路径命名	URL 全小写，中划线分隔，无动词，版本一致	🟡 Major
+批量接口	批量操作传 ID 列表，禁止循环调用单条接口	🟠 Critical
+Feign Fallback	所有 Feign 客户端配置了 fallbackFactory	🟠 Critical
+Feign 传递 Header	自动传递 X-Trace-Id 和 X-User-Id	🟡 Major
+三、数据库与持久层审查
+表格
+检查项	通过标准	严重等级
+通用字段完整	所有表有 id/create_time/update_time/create_by/update_by/is_deleted	🔴 Blocker
+逻辑删除	使用 MyBatis-Plus @TableLogic，禁止物理 DELETE	🔴 Blocker
+索引覆盖	所有查询条件字段有索引，EXPLAIN 确认无全表扫描	🔴 Blocker
+SQL 注入防护	使用 #{} 或 MyBatis-Plus Wrapper，禁止 ${}	🔴 Blocker
+分表评估	预计数据量 > 1000万 的表必须有分表方案	🟠 Critical
+大字段限制	TEXT/LONGTEXT 字段数量 < 3，JSON 字段有类型说明	🟡 Major
+外键约束	无数据库级 FOREIGN KEY，逻辑外键应用层校验	🟡 Major
+事务边界	@Transactional 在 Service 层，不跨 Feign/MQ 调用	🟠 Critical
+分页强制	列表查询必须有分页，禁止无 LIMIT 查询	🔴 Blocker
+四、缓存与性能审查
+表格
+检查项	通过标准	严重等级
+Redis Key 规范	符合 {svc}:{biz}:{id} 格式，无空格/中文	🟠 Critical
+缓存一致性	Cache Aside 或延迟双删，有明确的缓存更新策略	🟠 Critical
+大对象禁止缓存	视频/文件/超大 JSON 不走 Redis	🟡 Major
+分布式锁	使用 Redisson，lock:{biz}:{id} 格式，锁内无远程调用	🟠 Critical
+N+1 查询	列表查询无 N+1，使用 MyBatis-Plus selectBatchIds 或 JOIN	🟠 Critical
+慢 SQL	所有查询 RT < 100ms（P99），复杂报表走 ClickHouse	🟠 Critical
+循环查库	禁止 for 循环内查库，必须批量	🔴 Blocker
+五、消息队列审查
+表格
+检查项	通过标准	严重等级
+Topic 命名	{domain}.{action} 格式，全小写	🟡 Major
+消息体规范	包含 eventId/eventType/timestamp/source/payload	🟠 Critical
+幂等校验	消费者有基于 eventId 的幂等校验（Redis SETNX 或幂等表）	🔴 Blocker
+事务消息	发送 MQ 在本地事务 afterCommit 中，或本地事务表 + 定时补偿	🟠 Critical
+死信处理	消费失败有重试策略（3次），最终入死信队列人工处理	🟠 Critical
+消费线程隔离	消费者内部不直接调用第三方 HTTP，如需调用用独立线程池	🟡 Major
+六、安全审查
+表格
+检查项	通过标准	严重等级
+接口鉴权	所有业务接口走 Gateway JWT 校验；内部 Feign 有内部 Token	🔴 Blocker
+敏感数据脱敏	手机号/邮箱/身份证在日志和接口中用 @Mask 脱敏	🟠 Critical
+密码加密	用户密码 BCrypt 加密，禁止明文存储	🔴 Blocker
+XSS 防护	富文本输入用 DOMPurify 过滤，后端二次校验	🟠 Critical
+文件上传	白名单校验类型+大小，URL 预签名 Token 防盗链	🟠 Critical
+SQL 注入	100% 使用参数化查询	🔴 Blocker
+审计日志	管理端写操作记录审计表（操作人/时间/IP/内容/前后值）	🟠 Critical
+越权检查	接口校验当前用户是否有权操作该资源（不能改别人的数据）	🔴 Blocker
+七、前端代码审查
+表格
+检查项	通过标准	严重等级
+API 层隔离	所有请求通过 api/{svc}.ts，组件内无裸 axios	🟠 Critical
+类型定义	TypeScript 接口与后端 DTO 字段名/类型一致	🟠 Critical
+权限控制	使用 PermissionWrapper，不直接判断字符串	🟠 Critical
+枚举一致性	枚举值从后端 /api/enums 动态拉取，禁止硬编码	🟡 Major
+表单校验	使用 Zod/Yup schema，提交前最终校验	🟡 Major
+敏感信息脱敏	列表中的手机号/邮箱使用 mask 工具显示	🟡 Major
+路由权限	新增路由同步更新菜单配置和权限枚举	🟡 Major
+性能优化	路由懒加载、大列表虚拟滚动、图片懒加载	🟢 Minor
+错误处理	Axios 拦截器统一处理 401/403/500/业务错误	🟠 Critical
+八、测试审查
+表格
+检查项	通过标准	严重等级
+单元测试覆盖	Service 层核心逻辑覆盖率 > 60%	🟠 Critical
+单元测试有效性	测试用例包含正常/异常/边界场景	🟡 Major
+Mock 外部依赖	Feign/Mapper/Redis 调用全部 Mock	🟡 Major
+接口测试	Controller 层用 MockMvc 测试，覆盖参数校验	🟡 Major
+集成测试	关键链路（考试提交→成绩→积分→通知）有端到端测试	🟢 Minor
+九、容器与部署审查
+表格
+检查项	通过标准	严重等级
+镜像大小	最终镜像 < 200MB（JRE alpine + 多阶段构建）	🟡 Major
+非 Root 运行	Dockerfile 创建 playedu 用户，USER playedu	🟠 Critical
+JVM 参数	容器感知 -XX:+UseContainerSupport，堆内存合理	🟡 Major
+健康检查	Liveness/Readiness Probe 配置正确，路径可访问	🔴 Blocker
+资源限制	Request 和 Limit 都已配置，内存 Limit >= 2x Request	🟡 Major
+配置外置	应用配置走 Nacos，敏感信息走 K8s Secret	🔴 Blocker
+SkyWalking	Agent 挂载正确，服务名与 spring.application.name 一致	🟡 Major
+十、AI 代码生成自检 Checklist
+AI 每次生成代码后，必须按以下清单自检并标注结果：
+自检清单（Java 后端）
+
+    [ ] 分层合规：Controller/Service/Mapper/DTO 分离，Controller 无业务逻辑
+    [ ] 跨服务隔离：无直接查其他服务数据库的代码
+    [ ] 响应包装：Controller 返回 Result<T>，不是裸实体
+    [ ] DTO 隔离：请求用 ReqDTO，响应用 RespDTO，不直接用 Entity
+    [ ] Swagger 注解：接口有 @Operation 和 @Tag
+    [ ] 参数校验：入参有 @Valid，DTO 有校验注解
+    [ ] 数据库通用字段：实体继承 BaseEntity，有 create_time/update_time 等
+    [ ] 逻辑删除：使用 @TableLogic，无物理删除
+    [ ] 缓存规范：Redis Key 符合 {svc}:{biz}:{id}，有 TTL
+    [ ] Feign 降级：Feign 客户端有 fallbackFactory
+    [ ] 事务边界：@Transactional 在 Service，不跨服务调用
+    [ ] MQ 幂等：消费者有 eventId 幂等校验
+    [ ] 异常处理：自定义异常有错误码，全局异常处理器覆盖
+    [ ] 敏感数据处理：日志中无密码、Token、手机号明文
+    [ ] SQL 安全：无 ${}，无拼接 SQL，走索引
+
+自检清单（React 前端）
+
+    [ ] API 隔离：请求通过 api/{svc}.ts，组件内无裸 axios
+    [ ] 类型一致：TypeScript 接口字段与后端 DTO 一致
+    [ ] 权限包裹：敏感操作按钮用 PermissionWrapper
+    [ ] 枚举处理：枚举值从后端拉取，无硬编码魔法数字
+    [ ] 表单校验：使用 Zod schema，有错误提示
+    [ ] 加载状态：异步操作有 loading/骨架屏
+    [ ] 错误处理：有错误边界或统一错误提示
+    [ ] 路由同步：新增路由已更新菜单配置
+
+十一、CI 流水线质量门禁
+代码合并（Merge Request）必须通过以下门禁：
+表格
+门禁项	阈值	未通过动作
+SonarQube 覆盖率	>= 60%	❌ 阻断合并
+SonarQube 漏洞	= 0	❌ 阻断合并
+SonarQube 严重问题	= 0	❌ 阻断合并
+SonarQube 坏味道	< 50	🟡 警告可合并（需备注）
+单元测试通过	100% 通过	❌ 阻断合并
+接口契约校验	Swagger 前后端字段一致	🟡 警告
+镜像构建	Dockerfile 构建成功	❌ 阻断合并
+K8s 部署	Helm 模板渲染成功	❌ 阻断合并
+十二、审查意见模板
+使用统一的 Code Review 意见格式：
+plain
+复制
+
+[等级] 位置: 具体问题 → 建议修改方案 → 参考规范链接
+
+示例：
+[🔴 Blocker] ExamPaperController.createPaper: 方法直接返回 ExamPaper 实体，未包装 Result
+→ 修改为 return Result.success(examPaperService.createPaper(reqDTO));
+→ 参考: .clinerules 第五章
+
+[🟠 Critical] ExamRecordMapper.selectByExamId: 查询无分页，可能返回百万级数据
+→ 添加分页参数 PageParam，或限制查询时间范围
+→ 参考: skills/db-schema.md 第六章
+
+[🟡 Major] examApi.ts: 前端枚举值 ExamStatus.DRAFT = 1 与后端不一致（后端用 0）
+→ 统一从后端 /api/enums 拉取映射，或确认后端枚举值定义
+→ 参考: skills/react-frontend.md 第十一章
+
+## 跨文件开发强制读取协议
+
+当任务涉及多个文件的协作时，必须按以下流程执行：
+
+### Step 1: 读取依赖声明
+用户在 Prompt 开头会明确列出：
+
+```text
+[读取顺序]
+
+@文件路径 — 读取目的
+@文件路径 — 读取目的
+```
+
+### Step 2: 确认读取
+你必须逐条回复：`已读取 {文件名}，确认 {关键信息摘要}`
+
+如果任何文件读取失败，立即回复：`读取失败：{文件名}，缺少上下文，停止生成`
+
+### Step 3: 生成代码
+基于已确认读取的内容生成，不猜测未读取的文件内容。
+
+### Step 4: 依赖校验
+生成完成后，检查：
+- 调用的方法是否在被读取的文件中存在
+- 引用的字段是否在实体中定义
+- 使用的常量是否在枚举中定义
+
+如果存在未确认的依赖，标注 `[待确认]` 并列出。
+
+## 会话结束强制动作
+
+每个开发会话结束前，必须执行以下文档维护：
+
+### 1. 更新 ENTITY_INDEX.md
+如果会话中新增或修改了 Entity，更新 `{service}/ENTITY_INDEX.md`：
+
+```markdown
+- {EntityName} ({field1}, {field2}, {field3} + BaseEntity字段)
+  - 用途：{一句话说明}
+  - 关联表：{关联表名}
+  - 最后更新：{日期}
+```
+
+如果实体已存在，更新它而不是重复追加。
+
+### 2. 更新 API_CONTRACT.md
+如果会话中新增或修改了接口，更新 `{service}/API_CONTRACT.md`：
+
+```markdown
+- {METHOD} {URL} — {功能简述}
+  - 请求：{ReqDTO名称}
+  - 响应：{RespDTO名称}
+  - 最后更新：{日期}
+```
+
+### 3. 更新 DECISIONS.md
+如果会话中做了新的设计决策，追加到 `{service}/DECISIONS.md`：
+
+```markdown
+## {日期}
+- 问题：{问题简述}
+- 决策：{决策内容}
+- 理由：{一句话}
+- 反转条件：{什么情况下可以改}
+```
+
+### 4. 更新 TODO.md
+如果会话中发现未完成的任务，追加到 `{service}/TODO.md`：
+
+```markdown
+## {日期}
+- [ ] {待办事项} — 依赖：{依赖项} — 预计工时：{Xh}
+```
+
+### 执行规则
+- 用户说 `完成` 或 `结束` 时，自动触发上述动作
+- 如果某个文件不存在，先创建再追加
+- 输出格式：`已更新 {文件名}，新增 {N} 条记录`
+- 绝不省略此步骤，即使上下文紧张
