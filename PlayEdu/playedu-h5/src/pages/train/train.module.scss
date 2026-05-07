@@ -49,3 +49,110 @@
   color: #6b7280;
   margin-bottom: 14px;
 }
+
+/* ===== 培训详情页 ===== */
+.detailPage {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 24px;
+}
+
+.detailHeader {
+  background: #fff;
+  margin: 12px;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.detailDesc {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.detailTime {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.progressWrap {
+  .progressLabel {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+
+    span:last-child {
+      color: #1677ff;
+      font-weight: 600;
+    }
+  }
+}
+
+.taskSection {
+  margin: 12px;
+
+  .taskSectionTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  :global(.adm-list) {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+}
+
+.taskIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.taskContent {
+  .taskStep {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 2px;
+  }
+
+  .taskName {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .requiredTag {
+    font-size: 10px;
+    color: #ff4d4f;
+    background: #fff1f0;
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+}
+
+.taskExtra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taskCompleted {
+  :global(.adm-list-item-content) {
+    opacity: 0.7;
+  }
+}

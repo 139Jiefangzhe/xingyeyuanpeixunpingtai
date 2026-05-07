@@ -58,8 +58,12 @@ const TrainTaskListPage = () => {
               {item.startTime ? <span>开始 {dateFormat(item.startTime)}</span> : null}
               {item.endTime ? <span>结束 {dateFormat(item.endTime)}</span> : null}
             </div>
-            <Button block color="primary" onClick={() => navigate("/exam")}>
-              进入考试入口
+            <Button
+              block
+              color="primary"
+              onClick={() => navigate(`/train/${item.id}`)}
+            >
+              查看任务详情
             </Button>
           </div>
         ))

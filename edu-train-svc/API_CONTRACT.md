@@ -20,6 +20,11 @@
   - 响应：TrainProjectDetailResp
   - 最后更新：2026-05-05
 
+- SERVICE `TrainProjectService.getMyProjectDetail` — 查询学员视角的培训项目详情（含个人任务状态）
+  - 请求：String projectId, Long userId
+  - 响应：TrainProjectMyDetailDTO
+  - 最后更新：2026-05-07
+
 - SERVICE `TrainProjectService.getProjectStats` — 查询培训项目效果统计（任务完成度 + 学员进度）
   - 请求：String projectId
   - 响应：ProjectStatsResp
@@ -79,6 +84,11 @@
   - 请求：PathVariable id
   - 响应：Result<TrainProjectDetailResp>
   - 最后更新：2026-05-05
+
+- API `GET /api/v1/train-projects/{id}/my-detail` — 查询学员视角的培训项目详情
+  - 请求：PathVariable id + Header X-User-Id
+  - 响应：Result<TrainProjectMyDetailDTO>
+  - 最后更新：2026-05-07
 
 - API `GET /api/v1/train-projects/{id}/stats` — 查询培训项目效果统计
   - 请求：PathVariable id

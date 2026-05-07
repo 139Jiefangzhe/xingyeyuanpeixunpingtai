@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS edu_train_task;
 DROP TABLE IF EXISTS edu_train_project;
+DROP TABLE IF EXISTS edu_train_user_task;
 
 CREATE TABLE edu_train_project (
   id VARCHAR(64) PRIMARY KEY,
@@ -34,9 +35,28 @@ CREATE TABLE edu_train_task (
   is_deleted TINYINT NOT NULL DEFAULT 0
 );
 
+CREATE TABLE edu_train_user_task (
+  id VARCHAR(64) PRIMARY KEY,
+  project_id VARCHAR(64) NOT NULL,
+  task_id VARCHAR(64) NOT NULL,
+  user_id BIGINT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'NOT_STARTED',
+  completed_at TIMESTAMP NULL,
+  create_by BIGINT NOT NULL DEFAULT 0,
+  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_by BIGINT NOT NULL DEFAULT 0,
+  update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_deleted TINYINT NOT NULL DEFAULT 0
+);
+
 CREATE INDEX idx_train_project_status ON edu_train_project(status);
 CREATE INDEX idx_train_project_type ON edu_train_project(type);
 CREATE INDEX idx_train_project_create_time ON edu_train_project(create_time);
 CREATE INDEX idx_train_task_project_id ON edu_train_task(project_id);
 CREATE INDEX idx_train_task_type ON edu_train_task(type);
 CREATE INDEX idx_train_task_sort ON edu_train_task(sort);
+CREATE UNIQUE INDEX uk_train_user_task_project_task_user
+  ON edu_train_user_task(project_id, task_id, user_id);
+CREATE INDEX idx_train_user_task_user_project ON edu_train_user_task(user_id, project_id);
+CREATE INDEX idx_train_user_task_project_user_status
+  ON edu_train_user_task(project_id, user_id, status);

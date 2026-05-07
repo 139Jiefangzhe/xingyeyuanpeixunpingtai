@@ -9,3 +9,8 @@
   - 用途：维护培训项目下的课程、考试、直播、作业等任务节点
   - 关联表：edu_train_task
   - 最后更新：2026-05-05
+
+- TrainUserTask (projectId, taskId, userId, status, completedAt + BaseEntity字段)
+  - 用途：记录学员在培训项目下各任务节点的个人完成状态
+  - 关联表：edu_train_user_task
+  - 最后更新：2026-05-07

@@ -9,6 +9,7 @@ import com.playedu.train.dto.req.TrainTaskReq;
 import com.playedu.train.dto.resp.ProjectStatsResp;
 import com.playedu.train.dto.resp.TrainProjectDetailResp;
 import com.playedu.train.dto.resp.TrainProjectListResp;
+import com.playedu.train.dto.resp.TrainProjectMyDetailDTO;
 import com.playedu.train.service.TrainProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,6 +64,13 @@ public class TrainProjectController {
     @Operation(summary = "查询培训项目详情")
     public Result<TrainProjectDetailResp> getProjectDetail(@PathVariable String id) {
         return Result.success(trainProjectService.getProjectDetail(id));
+    }
+
+    @GetMapping("/{id}/my-detail")
+    @Operation(summary = "查询学员视角的培训项目详情")
+    public Result<TrainProjectMyDetailDTO> getMyProjectDetail(
+            @PathVariable String id, @RequestHeader("X-User-Id") Long userId) {
+        return Result.success(trainProjectService.getMyProjectDetail(id, userId));
     }
 
     @GetMapping("/{id}/stats")

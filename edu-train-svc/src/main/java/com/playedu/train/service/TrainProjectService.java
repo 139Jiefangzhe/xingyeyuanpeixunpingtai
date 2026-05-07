@@ -9,6 +9,7 @@ import com.playedu.train.dto.req.TrainTaskReq;
 import com.playedu.train.dto.resp.TrainProjectDetailResp;
 import com.playedu.train.dto.resp.TrainProjectListResp;
 import com.playedu.train.dto.resp.ProjectStatsResp;
+import com.playedu.train.dto.resp.TrainProjectMyDetailDTO;
 import java.util.List;
 
 public interface TrainProjectService {
@@ -19,6 +20,8 @@ public interface TrainProjectService {
     void publishProject(String projectId);
 
     TrainProjectDetailResp getProjectDetail(String projectId);
+
+    TrainProjectMyDetailDTO getMyProjectDetail(String projectId, Long userId);
 
     ProjectStatsResp getProjectStats(String projectId);
 

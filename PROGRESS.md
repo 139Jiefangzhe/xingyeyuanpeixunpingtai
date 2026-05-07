@@ -1,6 +1,6 @@
 # PlayEdu Microservice Progress
 
-Last updated: 2026-05-06
+Last updated: 2026-05-07
 
 ## Overall Status
 
@@ -13,7 +13,7 @@ Last updated: 2026-05-06
 | `edu-train-svc` | Done | Train project management + project stats aggregation |
 | `edu-live-svc` | Done | Live room metadata service and local profile |
 | `PlayEdu/playedu-admin` | Done | Admin UI for course, exam, train, live; train effect page validated |
-| `PlayEdu/playedu-h5` | In progress | Core learner exam flow is now running end-to-end |
+| `PlayEdu/playedu-h5` | In progress | Learner exam flow + train task detail flow are running end-to-end |
 
 ## Current Milestones
 
@@ -34,6 +34,9 @@ Last updated: 2026-05-06
   - `/exam/result/:paperId`
 - Added H5 train entry page:
   - `/train`
+- Added H5 train detail page:
+  - `/train/:projectId`
+  - supports task-level routing into course and exam pages
 - Added local learner bypass for development:
   - `VITE_LOCAL_DEV_BYPASS=true`
   - `VITE_LOCAL_USER_ID=10005`
@@ -54,6 +57,17 @@ Last updated: 2026-05-06
   2. answered all 3 questions
   3. submitted paper
   4. received result page with score and answer review
+
+### Learner H5 train detail flow
+- Validated URL: `http://127.0.0.1:3002/train/train-local-001`
+- Verified UI states:
+  - project title and description
+  - training time range
+  - overall progress bar
+  - task list with status tags
+- Verified task routing:
+  - exam task routes to `/exam/room/paper-local-001`
+  - completed course task routes to `/course/101`
 
 ### Stats change confirmed after learner submission
 - `edu-exam-svc`
@@ -102,7 +116,6 @@ Last updated: 2026-05-06
 
 - H5 still uses local bypass instead of real login and user context.
 - H5 exam list state is derived from local storage, not a server-side "my records" API.
-- H5 train page only provides a project-level exam entry, not task-detail participation yet.
 - Course learning and live participation pages on H5 are still placeholders.
 - Admin still has non-blocking frontend warnings:
   - deprecated `Button.Group`
@@ -110,6 +123,6 @@ Last updated: 2026-05-06
 
 ## Recommended Next Step
 
-1. Build H5 train task detail page so learners can enter course, exam, and live tasks from a single project view.
-2. Replace H5 local learner state with real `my exams` and `my train tasks` APIs.
+1. Replace H5 local learner state with real `my exams` and `my train tasks` APIs.
+2. Fill the H5 live participation and richer course learning path beyond the current compatibility bridge.
 3. Add one short demo script or screen recording checklist for team presentation.

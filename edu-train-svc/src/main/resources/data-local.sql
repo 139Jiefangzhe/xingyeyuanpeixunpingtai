@@ -52,3 +52,34 @@ INSERT INTO edu_train_task (
     TIMESTAMP '2026-05-05 09:15:00',
     0
   );
+
+INSERT INTO edu_train_user_task (
+  id, project_id, task_id, user_id, status, completed_at,
+  create_by, create_time, update_by, update_time, is_deleted
+) VALUES
+  (
+    'train-user-task-local-001',
+    'train-local-001',
+    'train-task-local-001',
+    10005,
+    'COMPLETED',
+    TIMESTAMP '2026-05-05 20:00:00',
+    10005,
+    TIMESTAMP '2026-05-05 19:00:00',
+    10005,
+    TIMESTAMP '2026-05-05 20:00:00',
+    0
+  ),
+  (
+    'train-user-task-local-002',
+    'train-local-001',
+    'train-task-local-002',
+    10005,
+    'IN_PROGRESS',
+    NULL,
+    10005,
+    TIMESTAMP '2026-05-06 16:40:00',
+    10005,
+    TIMESTAMP '2026-05-06 16:50:00',
+    0
+  );

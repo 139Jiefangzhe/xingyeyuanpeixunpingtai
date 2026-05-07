@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.playedu.common.exception.BizException;
 import com.playedu.train.domain.entity.TrainProject;
 import com.playedu.train.domain.entity.TrainTask;
+import com.playedu.train.domain.entity.TrainUserTask;
 import com.playedu.train.dto.query.TrainProjectQueryDTO;
 import com.playedu.train.dto.req.TrainProjectCreateReq;
 import com.playedu.train.dto.req.TrainTaskReq;
@@ -18,6 +19,7 @@ import com.playedu.train.dto.resp.ProjectTaskProgressResp;
 import com.playedu.train.dto.resp.StudentProgressResp;
 import com.playedu.train.dto.resp.TrainProjectDetailResp;
 import com.playedu.train.dto.resp.TrainProjectListResp;
+import com.playedu.train.dto.resp.TrainProjectMyDetailDTO;
 import com.playedu.train.dto.resp.TrainTaskResp;
 import com.playedu.train.dto.resp.UserFeignResp;
 import com.playedu.train.feign.CourseFeignClient;
@@ -26,6 +28,7 @@ import com.playedu.train.feign.LiveFeignClient;
 import com.playedu.train.feign.UserFeignClient;
 import com.playedu.train.mapper.TrainProjectMapper;
 import com.playedu.train.mapper.TrainTaskMapper;
+import com.playedu.train.mapper.TrainUserTaskMapper;
 import com.playedu.train.service.TrainProjectService;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -55,6 +58,7 @@ public class TrainProjectServiceImpl implements TrainProjectService {
 
     private final TrainProjectMapper trainProjectMapper;
     private final TrainTaskMapper trainTaskMapper;
+    private final TrainUserTaskMapper trainUserTaskMapper;
     private final CourseFeignClient courseFeignClient;
     private final ExamFeignClient examFeignClient;
     private final LiveFeignClient liveFeignClient;
@@ -64,6 +68,7 @@ public class TrainProjectServiceImpl implements TrainProjectService {
     public TrainProjectServiceImpl(
             TrainProjectMapper trainProjectMapper,
             TrainTaskMapper trainTaskMapper,
+            TrainUserTaskMapper trainUserTaskMapper,
             CourseFeignClient courseFeignClient,
             ExamFeignClient examFeignClient,
             LiveFeignClient liveFeignClient,
@@ -71,6 +76,7 @@ public class TrainProjectServiceImpl implements TrainProjectService {
             TransactionTemplate transactionTemplate) {
         this.trainProjectMapper = trainProjectMapper;
         this.trainTaskMapper = trainTaskMapper;
+        this.trainUserTaskMapper = trainUserTaskMapper;
         this.courseFeignClient = courseFeignClient;
         this.examFeignClient = examFeignClient;
         this.liveFeignClient = liveFeignClient;
@@ -168,6 +174,46 @@ public class TrainProjectServiceImpl implements TrainProjectService {
                                                 task,
                                                 courseTitleMap.get(task.getRefId()),
                                                 examPaperTitleMap.get(task.getRefId())))
+                        .toList());
+        return resp;
+    }
+
+    @Override
+    public TrainProjectMyDetailDTO getMyProjectDetail(String projectId, Long userId) {
+        if (userId == null || userId <= 0L) {
+            throw new BizException("TRAIN_PROJECT_USER_INVALID", "学员ID不合法");
+        }
+
+        TrainProject project = getExistingProject(projectId);
+        List<TrainTask> tasks = listTasksByProjectId(projectId);
+        List<TrainUserTask> userTasks = listUserTasksByProjectIdAndUserId(projectId, userId);
+        Map<String, TrainUserTask> userTaskMap =
+                userTasks.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        TrainUserTask::getTaskId,
+                                        Function.identity(),
+                                        (left, right) -> right,
+                                        LinkedHashMap::new));
+
+        TrainProjectMyDetailDTO resp = new TrainProjectMyDetailDTO();
+        resp.setProjectId(project.getId());
+        resp.setTitle(project.getTitle());
+        resp.setDescription(project.getDescription());
+        resp.setStartTime(project.getStartTime());
+        resp.setEndTime(project.getEndTime());
+        resp.setOverallProgress(
+                tasks.isEmpty()
+                        ? 0
+                        : toPercentage(
+                                (int)
+                                        userTasks.stream()
+                                                .filter(item -> "COMPLETED".equals(item.getStatus()))
+                                                .count(),
+                                tasks.size()));
+        resp.setTasks(
+                tasks.stream()
+                        .map(task -> toMyTaskItem(task, userTaskMap.get(task.getId())))
                         .toList());
         return resp;
     }
@@ -299,6 +345,16 @@ public class TrainProjectServiceImpl implements TrainProjectService {
                 .orderByAsc(TrainTask::getCreateTime);
         List<TrainTask> tasks = trainTaskMapper.selectList(queryWrapper);
         return tasks == null ? Collections.emptyList() : tasks;
+    }
+
+    private List<TrainUserTask> listUserTasksByProjectIdAndUserId(String projectId, Long userId) {
+        LambdaQueryWrapper<TrainUserTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TrainUserTask::getProjectId, projectId)
+                .eq(TrainUserTask::getUserId, userId)
+                .eq(TrainUserTask::getIsDeleted, 0)
+                .orderByDesc(TrainUserTask::getUpdateTime);
+        List<TrainUserTask> userTasks = trainUserTaskMapper.selectList(queryWrapper);
+        return userTasks == null ? Collections.emptyList() : userTasks;
     }
 
     private Map<String, Integer> loadTaskCountMap(List<TrainProject> projects) {
@@ -708,6 +764,33 @@ public class TrainProjectServiceImpl implements TrainProjectService {
             return "通过人数";
         }
         return "完成人数";
+    }
+
+    private TrainProjectMyDetailDTO.TaskItemDTO toMyTaskItem(TrainTask task, TrainUserTask userTask) {
+        TrainProjectMyDetailDTO.TaskItemDTO item = new TrainProjectMyDetailDTO.TaskItemDTO();
+        item.setTaskId(task.getId());
+        item.setTaskName(task.getName());
+        item.setTaskType(resolveMyTaskType(task.getType()));
+        item.setResourceId(task.getRefId());
+        item.setSort(task.getSort());
+        item.setRequired(Integer.valueOf(1).equals(task.getRequired()));
+        if (userTask != null) {
+            item.setStatus(defaultMessage(userTask.getStatus(), "NOT_STARTED"));
+            item.setCompletedAt(userTask.getCompletedAt());
+        } else {
+            item.setStatus("NOT_STARTED");
+        }
+        return item;
+    }
+
+    private String resolveMyTaskType(Integer taskType) {
+        return switch (defaultTaskType(taskType)) {
+            case 1 -> "COURSE";
+            case 2 -> "EXAM";
+            case 3 -> "LIVE";
+            case 4 -> "ASSIGNMENT";
+            default -> "UNKNOWN";
+        };
     }
 
     private int resolveNextSort(String projectId) {
