@@ -87,6 +87,18 @@ const items = [
     null
   ),
   getItem(
+    "积分商城",
+    "point",
+    <i className="iconfont icon-icon-study" />,
+    [
+      getItem("积分规则", "/point/rules", null, null, null, null),
+      getItem("积分商品", "/point/products", null, null, null, null),
+      getItem("兑换订单", "/point/orders", null, null, null, null),
+    ],
+    null,
+    null
+  ),
+  getItem(
     "学员管理",
     "user",
     <i className="iconfont icon-icon-user" />,
@@ -147,6 +159,7 @@ export const LeftMenu: React.FC = () => {
     "^/exam": ["exam"],
     "^/train": ["train"],
     "^/live": ["live"],
+    "^/point": ["point"],
     "^/system": ["system"],
   };
 
@@ -256,6 +269,9 @@ export const LeftMenu: React.FC = () => {
     } else if (location.pathname.indexOf("/live/rooms") !== -1) {
       setSelectedKeys(["/live/rooms"]);
       setOpenKeys(openKeyMerge("/live/rooms"));
+    } else if (location.pathname.indexOf("/point/") !== -1) {
+      setSelectedKeys([location.pathname]);
+      setOpenKeys(openKeyMerge(location.pathname));
     } else if (location.pathname.indexOf("/member/learn") !== -1) {
       setSelectedKeys(["/member/index"]);
       setOpenKeys(openKeyMerge("/member/index"));

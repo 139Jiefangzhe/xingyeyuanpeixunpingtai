@@ -23,6 +23,7 @@ const localServiceBaseURLs = {
   train: import.meta.env.VITE_TRAIN_API_BASE_URL || "http://127.0.0.1:8082",
   course: import.meta.env.VITE_COURSE_API_BASE_URL || "http://127.0.0.1:8083",
   live: import.meta.env.VITE_LIVE_API_BASE_URL || "http://127.0.0.1:8084",
+  point: import.meta.env.VITE_POINT_API_BASE_URL || "http://127.0.0.1:8086",
   user: import.meta.env.VITE_USER_API_BASE_URL || "http://127.0.0.1:8085",
 };
 
@@ -35,6 +36,10 @@ const serviceRoutes: Array<{ prefix: string; baseURL: string }> = [
   { prefix: "/api/v1/exam-records", baseURL: localServiceBaseURLs.exam },
   { prefix: "/api/v1/exam-sessions", baseURL: localServiceBaseURLs.exam },
   { prefix: "/api/v1/enums", baseURL: localServiceBaseURLs.exam },
+  { prefix: "/api/v1/point-rules", baseURL: localServiceBaseURLs.point },
+  { prefix: "/api/v1/point-products", baseURL: localServiceBaseURLs.point },
+  { prefix: "/api/v1/point-orders", baseURL: localServiceBaseURLs.point },
+  { prefix: "/api/v1/point-records", baseURL: localServiceBaseURLs.point },
   { prefix: "/api/v1/users", baseURL: localServiceBaseURLs.user },
   { prefix: "/api/v1/departments", baseURL: localServiceBaseURLs.user },
 ];

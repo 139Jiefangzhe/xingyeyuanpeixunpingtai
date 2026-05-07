@@ -22,3 +22,4 @@ export * as enumApi from "./enumApi";
 export * as trainApi from "./trainApi";
 export * as courseApi from "./courseApi";
 export * as liveApi from "./liveApi";
+export * as pointApi from "./point";

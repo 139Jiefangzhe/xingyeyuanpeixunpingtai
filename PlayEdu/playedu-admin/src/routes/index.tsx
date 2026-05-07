@@ -41,6 +41,12 @@ const TrainTaskConfigPage = lazy(() => import("../pages/train/TrainTaskConfig"))
 //直播相关
 const LiveRoomListPage = lazy(() => import("../pages/live/LiveRoomList"));
 const LiveRoomFormPage = lazy(() => import("../pages/live/LiveRoomForm"));
+//积分相关
+const PointRuleManagePage = lazy(() => import("../pages/point/PointRuleManage"));
+const PointProductManagePage = lazy(
+  () => import("../pages/point/PointProductManage")
+);
+const PointOrderManagePage = lazy(() => import("../pages/point/PointOrderManage"));
 //学员相关
 const MemberPage = lazy(() => import("../pages/member"));
 const MemberImportPage = lazy(() => import("../pages/member/import"));
@@ -220,6 +226,18 @@ const routes: RouteObject[] = [
           {
             path: "/live/rooms/create",
             element: <PrivateRoute Component={<LiveRoomFormPage />} />,
+          },
+          {
+            path: "/point/rules",
+            element: <PrivateRoute Component={<PointRuleManagePage />} />,
+          },
+          {
+            path: "/point/products",
+            element: <PrivateRoute Component={<PointProductManagePage />} />,
+          },
+          {
+            path: "/point/orders",
+            element: <PrivateRoute Component={<PointOrderManagePage />} />,
           },
           {
             path: "/member",
