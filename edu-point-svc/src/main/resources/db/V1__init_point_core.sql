@@ -1,0 +1,58 @@
+CREATE TABLE IF NOT EXISTS point_rule (
+  id VARCHAR(64) PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  rule_type VARCHAR(30) NOT NULL,
+  points INT NOT NULL,
+  description VARCHAR(255),
+  status TINYINT NOT NULL DEFAULT 1,
+  is_del TINYINT NOT NULL DEFAULT 0,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_point_rule_type (rule_type)
+);
+
+CREATE TABLE IF NOT EXISTS point_record (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  rule_type VARCHAR(30),
+  points INT NOT NULL,
+  balance INT NOT NULL,
+  source_id VARCHAR(64),
+  source_type VARCHAR(30),
+  remark VARCHAR(255),
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_point_record_user_id (user_id),
+  INDEX idx_point_record_create_time (create_time)
+);
+
+CREATE TABLE IF NOT EXISTS point_product (
+  id VARCHAR(64) PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  image_url VARCHAR(500),
+  points_price INT NOT NULL,
+  stock INT NOT NULL DEFAULT 0,
+  status TINYINT NOT NULL DEFAULT 1,
+  sort INT NOT NULL DEFAULT 0,
+  is_del TINYINT NOT NULL DEFAULT 0,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_point_product_sort (sort)
+);
+
+CREATE TABLE IF NOT EXISTS point_order (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  product_id VARCHAR(64) NOT NULL,
+  product_name VARCHAR(200) NOT NULL,
+  points_price INT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  total_points INT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  address VARCHAR(500),
+  remark VARCHAR(255),
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_point_order_user_id (user_id)
+);
+

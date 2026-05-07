@@ -1,0 +1,9 @@
+package com.playedu.point.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.playedu.point.domain.PointRecord;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface PointRecordMapper extends BaseMapper<PointRecord> {}
+
