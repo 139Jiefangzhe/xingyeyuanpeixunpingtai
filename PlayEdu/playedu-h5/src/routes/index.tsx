@@ -30,6 +30,8 @@ const ExamResultPage = lazy(() => import("../pages/exam/ExamResult"));
 //培训页面
 const TrainTaskListPage = lazy(() => import("../pages/train/TrainTaskList"));
 const TrainDetailPage = lazy(() => import("../pages/train/TrainDetail"));
+const PointMallPage = lazy(() => import("../pages/point/PointMall"));
+const PointRecordsPage = lazy(() => import("../pages/point/PointRecords"));
 
 import PrivateRoute from "../components/private-route";
 
@@ -133,6 +135,10 @@ const routes: RouteObject[] = [
             path: "/train",
             element: <PrivateRoute Component={<TrainTaskListPage />} />,
           },
+          {
+            path: "/points",
+            element: <PrivateRoute Component={<PointMallPage />} />,
+          },
         ],
       },
       {
@@ -170,6 +176,10 @@ const routes: RouteObject[] = [
           {
             path: "/train/:projectId",
             element: <PrivateRoute Component={<TrainDetailPage />} />,
+          },
+          {
+            path: "/points/records",
+            element: <PrivateRoute Component={<PointRecordsPage />} />,
           },
         ],
       },
