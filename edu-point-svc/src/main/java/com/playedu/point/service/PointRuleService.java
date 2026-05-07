@@ -7,5 +7,6 @@ public interface PointRuleService {
     List<PointRuleResp> listRules();
 
     PointRuleResp getRuleById(String id);
-}
 
+    void updateStatus(String id, Integer status);
+}
